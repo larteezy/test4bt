@@ -78,10 +78,36 @@ class Orders extends \yii\db\ActiveRecord
 			[['dt_add'], 'safe'],
 			[['price'], 'compare', 'compareValue' => 0, 'operator' => '>='],
 			[['price'], 'number'],
+			// [['products'], 'required'],
 			[['status'], 'default', 'value' => null],
 			[['status'], 'in', 'range' => self::getAllStatuses()],
 			[['status'], 'integer'],
 		];
+	}
+
+	public function load($data, $formname = null)
+	{
+		if (isset($data['Orders']['products'])) {
+			$productsPost = $data['Orders']['products'] ? Products::findAll($data['Orders']['products']) : [];
+			$productsCurrent = $this->getProducts()->all();
+
+			foreach ($productsPost as $product) {
+				if (!in_array($product, $productsCurrent)) {
+					$OrderProduct = new OrderProducts();
+					$OrderProduct->product_id = $product->product_id;
+					$OrderProduct->order_id = $this->order_id;
+					$OrderProduct->insert();
+				}
+			}
+
+			foreach ($productsCurrent as $product) {
+				if (!in_array($product, $productsPost)) {
+					OrderProducts::deleteAll("product_id = $product->product_id AND order_id = $this->order_id");
+				}
+			}
+		}
+
+		return parent::load($data, $formname = null);
 	}
 
 	/**
