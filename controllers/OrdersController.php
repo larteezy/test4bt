@@ -87,6 +87,11 @@ class OrdersController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            $model->updateProductsByPost(Yii::$app->request->post());
+            if (!$model->orderProducts) {
+                $model->delete();
+                return $this->redirect(['index']);
+            }
             return $this->redirect(['view', 'id' => $model->order_id]);
         }
 

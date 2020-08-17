@@ -76,8 +76,9 @@ class Orders extends \yii\db\ActiveRecord
 	{
 		return [
 			[['dt_add'], 'safe'],
-			[['price'], 'compare', 'compareValue' => 0, 'operator' => '>='],
-			[['price'], 'number'],
+			// [['price'], 'compare', 'compareValue' => 0, 'operator' => '>='],
+			// [['price'], 'number'],
+			// [['price'], 'default', 'value' => 0],
 			// [['products'], 'required'],
 			[['status'], 'default', 'value' => null],
 			[['status'], 'in', 'range' => self::getAllStatuses()],
@@ -85,29 +86,32 @@ class Orders extends \yii\db\ActiveRecord
 		];
 	}
 
-	public function load($data, $formname = null)
+	public function updateProductsByPost($data)
 	{
 		if (isset($data['Orders']['products'])) {
-			$productsPost = $data['Orders']['products'] ? Products::findAll($data['Orders']['products']) : [];
-			$productsCurrent = $this->getProducts()->all();
+			$this->updateProductsByIds($data['Orders']['products']);
+		}
+	}
 
-			foreach ($productsPost as $product) {
-				if (!in_array($product, $productsCurrent)) {
-					$OrderProduct = new OrderProducts();
-					$OrderProduct->product_id = $product->product_id;
-					$OrderProduct->order_id = $this->order_id;
-					$OrderProduct->insert();
-				}
-			}
+	public function updateProductsByIds($idsArray)
+	{
+		$productsPost = $idsArray ? Products::findAll($idsArray) : [];
+		$productsCurrent = $this->getProducts()->all();
 
-			foreach ($productsCurrent as $product) {
-				if (!in_array($product, $productsPost)) {
-					OrderProducts::deleteAll("product_id = $product->product_id AND order_id = $this->order_id");
-				}
+		foreach ($productsPost as $product) {
+			if (!in_array($product, $productsCurrent)) {
+				$OrderProduct = new OrderProducts();
+				$OrderProduct->product_id = $product->product_id;
+				$OrderProduct->order_id = $this->order_id;
+				$OrderProduct->insert();
 			}
 		}
 
-		return parent::load($data, $formname = null);
+		foreach ($productsCurrent as $product) {
+			if (!in_array($product, $productsPost)) {
+				OrderProducts::deleteAll("product_id = $product->product_id AND order_id = $this->order_id");
+			}
+		}
 	}
 
 	/**
