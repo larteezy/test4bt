@@ -14,9 +14,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'dt_add')->textInput() ?>
 
-    <?= $form->field($model, 'price')->textInput() ?>
-
-    <?= $form->field($model, 'status')->textInput() ?>
+    <?= $form->field($model, 'status')->listBox($model::getStatusesLables()) ?>
 
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>

@@ -6,7 +6,7 @@ use yii\widgets\DetailView;
 /* @var $this yii\web\View */
 /* @var $model app\models\Orders */
 
-$this->title = $model->order_id;
+$this->title = Yii::t('app', 'Order #') . $model->order_id;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Orders'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
@@ -35,5 +35,16 @@ $this->params['breadcrumbs'][] = $this->title;
             'status',
         ],
     ]) ?>
+
+    <h2><?= Yii::t('app', 'Products:') ?></h2>
+    <?php foreach ($model->products as $product): ?>
+        <?= DetailView::widget([
+            'model' => $product,
+            'attributes' => [
+                'name',
+                'price',
+            ],
+        ]) ?>
+    <?php endforeach; ?>
 
 </div>

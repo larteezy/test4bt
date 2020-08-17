@@ -32,7 +32,8 @@ class Products extends \yii\db\ActiveRecord
     {
         return [
             [['price'], 'number'],
-            [['count'], 'default', 'value' => null],
+            [['price', 'count'], 'compare', 'compareValue' => 0, 'operator' => '>='],
+            [['count'], 'default', 'value' => 0],
             [['count'], 'integer'],
             [['name'], 'string', 'max' => 255],
         ];
@@ -47,7 +48,7 @@ class Products extends \yii\db\ActiveRecord
             'product_id' => Yii::t('app', 'Product ID'),
             'name' => Yii::t('app', 'Name'),
             'price' => Yii::t('app', 'Price'),
-            'count' => Yii::t('app', 'Count'),
+            'count' => Yii::t('app', 'Product Quantity'),
         ];
     }
 
