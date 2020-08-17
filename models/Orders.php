@@ -31,9 +31,9 @@ class Orders extends \yii\db\ActiveRecord
 
 	/** @var array Все существующие статусы заказа и их текстовые значения*/
 	const STATUSES_LABLES = [
-		self::STATUS_CREATED => 'created',
-		self::STATUS_PAID => 'paid',
-		self::STATUS_COMPLETED => 'completed',
+		self::STATUS_CREATED => 'Created',
+		self::STATUS_PAID => 'Paid',
+		self::STATUS_COMPLETED => 'Completed',
 	];
 
 	/**
