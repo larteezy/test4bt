@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use lhs\Yii2SaveRelationsBehavior\SaveRelationsBehavior;
 use Yii;
 
 /**
@@ -99,12 +100,28 @@ class Orders extends \yii\db\ActiveRecord
 		return $result;
 	}
 
-	// public function updateProductsByPost($data)
-	// {
-	// 	if (isset($data['Orders']['products'])) {
-	// 		$this->updateProductsByIds($data['Orders']['products']);
-	// 	}
-	// }
+	/**
+	 * @inheritdoc
+	 */
+	public function behaviors()
+	{
+		return [
+            [
+                'class' => SaveRelationsBehavior::className(),
+                'relations' => [
+                    'products',
+                ],
+            ],
+        ];
+	}
+
+	//Использовать транзакции для SaveRelationsBehavior
+	public function transactions()
+	{
+		return [
+			self::SCENARIO_DEFAULT => self::OP_ALL,
+		];
+	}
 
 	public function updateProductsByIds(array $idsArray)
 	{
@@ -112,22 +129,7 @@ class Orders extends \yii\db\ActiveRecord
 			return false;
 		}
 		$productsPost = Products::findAll($idsArray);
-		$productsCurrent = $this->getProducts()->all();
-
-		foreach ($productsPost as $product) {
-			if (!in_array($product, $productsCurrent)) {
-				$OrderProduct = new OrderProducts();
-				$OrderProduct->product_id = $product->product_id;
-				$OrderProduct->order_id = $this->order_id;
-				$OrderProduct->insert();
-			}
-		}
-
-		foreach ($productsCurrent as $product) {
-			if (!in_array($product, $productsPost)) {
-				OrderProducts::deleteAll("product_id = $product->product_id AND order_id = $this->order_id");
-			}
-		}
+		$this->products = $productsPost;
 
 		return true;
 	}
