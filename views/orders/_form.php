@@ -15,8 +15,6 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'dt_add')->textInput() ?>
-
     <?= $form->field($model, 'status')->listBox($model::getStatusesLables()) ?>
 
     <?= BaseHtml::activeCheckboxList($model, 'products', (ArrayHelper::map(Products::find()->all(), 'product_id' , 'name'))) ?>

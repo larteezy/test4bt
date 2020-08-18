@@ -4,6 +4,11 @@ namespace app\models;
 
 use lhs\Yii2SaveRelationsBehavior\SaveRelationsBehavior;
 use Yii;
+use yii\behaviors\AttributeBehavior;
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
+use yii\db\Expression;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "orders".
@@ -21,13 +26,13 @@ use Yii;
 */
 class Orders extends \yii\db\ActiveRecord
 {
-	/** @var integer Статус заказа: создан */
+	/** @var int Статус заказа: создан */
 	const STATUS_CREATED = 1;
 
-	/** @var integer Статус заказа: оплачен */
+	/** @var int Статус заказа: оплачен */
 	const STATUS_PAID = 2;
 
-	/** @var integer Статус заказа: завершен */
+	/** @var int Статус заказа: завершен */
 	const STATUS_COMPLETED = 3;
 
 	/** @var array Все существующие статусы заказа и их текстовые значения*/
@@ -76,28 +81,20 @@ class Orders extends \yii\db\ActiveRecord
 	public function rules()
 	{
 		return [
-			[['dt_add'], 'safe'],
+			//Если успею дойти до авторизации, то можн добавить изменение этих параметров для админов
+			// [['dt_add'], 'safe'],
 			// [['price'], 'compare', 'compareValue' => 0, 'operator' => '>='],
 			// [['price'], 'number'],
 			// [['price'], 'default', 'value' => 0],
-			// [['products'], 'required'],
-			[['status'], 'default', 'value' => null],
+
+			// нормализует значение "products" используя функцию "normalizePhone"
+			[['products'], 'filter', 'filter' => ['app\models\Products', 'findAll']],
+			[['products'], 'required'],
+			[['status'], 'required'],
+			[['status'], 'default', 'value' => self::STATUS_CREATED],
 			[['status'], 'in', 'range' => self::getAllStatuses()],
 			[['status'], 'integer'],
 		];
-	}
-
-	public function load($data, $formname = null)
-	{
-		$result = parent::load($data, $formname);
-
-		if (!$result) {
-			return $result;
-		}
-
-		$this->updateProductsByIds((array) $data['Orders']['products']);
-
-		return $result;
 	}
 
 	/**
@@ -111,7 +108,25 @@ class Orders extends \yii\db\ActiveRecord
                 'relations' => [
                     'products',
                 ],
-            ],
+			],
+			[
+                'class' => TimestampBehavior::className(),
+                'attributes' => [
+                    ActiveRecord::EVENT_BEFORE_INSERT => ['dt_add'],
+                ],
+                //Вместо метки времени UNIX используется datetime:
+                'value' => new Expression('NOW()'),
+			],
+			[
+				'class' => AttributeBehavior::className(),
+				'attributes' => [
+					ActiveRecord::EVENT_BEFORE_INSERT => 'price',
+					ActiveRecord::EVENT_BEFORE_UPDATE => 'price',
+				],
+				'value' => function ($event) {
+					return array_sum(array_column($this->products, 'price'));
+				},
+			],
         ];
 	}
 
@@ -121,17 +136,6 @@ class Orders extends \yii\db\ActiveRecord
 		return [
 			self::SCENARIO_DEFAULT => self::OP_ALL,
 		];
-	}
-
-	public function updateProductsByIds(array $idsArray)
-	{
-		if (!$idsArray) {
-			return false;
-		}
-		$productsPost = Products::findAll($idsArray);
-		$this->products = $productsPost;
-
-		return true;
 	}
 
 	/**
