@@ -96,7 +96,13 @@ class Orders extends \yii\db\ActiveRecord
 		];
 	}
 
-	public function filterProducts(array $dataArray) {
+	/**
+	 * Прерващает массив ID товаров в массив объектов товаров
+	 *
+	 * @param array $dataArray
+	 */
+	public function filterProducts(array $dataArray)
+	{
 		if (!$dataArray) {
 			return [];
 		}

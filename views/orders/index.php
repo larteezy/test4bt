@@ -1,5 +1,6 @@
 <?php
 
+use app\models\Orders;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
@@ -30,7 +31,13 @@ $this->params['breadcrumbs'][] = $this->title;
             'order_id',
             'dt_add',
             'price',
-            'status',
+            [
+                'attribute' => 'status',
+                'content' => function($data){
+                    return Yii::t('app', Orders::STATUSES_LABLES[$data->status]);
+                },
+                'filter' => Orders::getStatusesLables(),
+            ],
 
             ['class' => 'yii\grid\ActionColumn'],
         ],
