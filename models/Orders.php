@@ -8,7 +8,6 @@ use yii\behaviors\AttributeBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\db\Expression;
-use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "orders".
@@ -87,8 +86,8 @@ class Orders extends \yii\db\ActiveRecord
 			// [['price'], 'number'],
 			// [['price'], 'default', 'value' => 0],
 
-			// нормализует значение "products" используя функцию "normalizePhone"
-			[['products'], 'filter', 'filter' => ['app\models\Products', 'findAll']],
+			// нормализует значение "products"
+			[['products'], 'filter', 'filter' => [$this, 'filterProducts']],
 			[['products'], 'required'],
 			[['status'], 'required'],
 			[['status'], 'default', 'value' => self::STATUS_CREATED],
@@ -97,25 +96,40 @@ class Orders extends \yii\db\ActiveRecord
 		];
 	}
 
+	public function filterProducts(array $dataArray) {
+		if (!$dataArray) {
+			return [];
+		}
+
+		if (current($dataArray) instanceof Products) {
+			return $dataArray;
+		}
+		// (new OrderProducts())->refresh();
+		return Products::find()
+			->where(['product_id' => $dataArray])
+			->where('count > 0')
+			->all();
+	}
+
 	/**
 	 * @inheritdoc
 	 */
 	public function behaviors()
 	{
 		return [
-            [
-                'class' => SaveRelationsBehavior::className(),
-                'relations' => [
-                    'products',
-                ],
+			[
+				'class' => SaveRelationsBehavior::className(),
+				'relations' => [
+					'products',
+				],
 			],
 			[
-                'class' => TimestampBehavior::className(),
-                'attributes' => [
-                    ActiveRecord::EVENT_BEFORE_INSERT => ['dt_add'],
-                ],
-                //Вместо метки времени UNIX используется datetime:
-                'value' => new Expression('NOW()'),
+				'class' => TimestampBehavior::className(),
+				'attributes' => [
+					ActiveRecord::EVENT_BEFORE_INSERT => ['dt_add'],
+				],
+				//Вместо метки времени UNIX используется datetime:
+				'value' => new Expression('NOW()'),
 			],
 			[
 				'class' => AttributeBehavior::className(),
@@ -127,7 +141,7 @@ class Orders extends \yii\db\ActiveRecord
 					return array_sum(array_column($this->products, 'price'));
 				},
 			],
-        ];
+		];
 	}
 
 	//Использовать транзакции для SaveRelationsBehavior

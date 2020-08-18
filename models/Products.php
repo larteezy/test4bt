@@ -53,6 +53,16 @@ class Products extends \yii\db\ActiveRecord
     }
 
     /**
+     * Возвращает доступные для продажи товары
+     *
+     * @return ActiveQuery the newly created [[ActiveQuery]] instance.
+     */
+    public static function getAvailableProducts(array $idsArray = [])
+    {
+        return Products::find()->where('count > 0')->all();
+    }
+
+    /**
      * Gets query for [[OrderProducts]].
      *
      * @return \yii\db\ActiveQuery

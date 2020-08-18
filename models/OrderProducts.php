@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\behaviors\AttributeBehavior;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "order_products".
@@ -36,6 +38,31 @@ class OrderProducts extends \yii\db\ActiveRecord
             [['order_id', 'product_id'], 'unique', 'targetAttribute' => ['order_id', 'product_id']],
             [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => Orders::className(), 'targetAttribute' => ['order_id' => 'order_id']],
             [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => Products::className(), 'targetAttribute' => ['product_id' => 'product_id']],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            'class' => AttributeBehavior::className(),
+            'attributes' => [
+                ActiveRecord::EVENT_BEFORE_INSERT => 'product',
+                ActiveRecord::EVENT_BEFORE_DELETE => 'product',
+            ],
+            'value' => function ($event) {
+                $Product = new $this->product;
+
+                switch ($event->name) {
+                    case ActiveRecord::EVENT_BEFORE_INSERT:
+                        $Product->count = $Product->count ? --$Product->count : $Product->count;
+                    break;
+                    case ActiveRecord::EVENT_BEFORE_DELETE:
+                        $Product->count++;
+                    break;
+                }
+
+                return $Product;
+            },
         ];
     }
 
