@@ -57,7 +57,7 @@ class Products extends \yii\db\ActiveRecord
      *
      * @return ActiveQuery the newly created [[ActiveQuery]] instance.
      */
-    public static function getAvailableProducts(array $idsArray = [])
+    public static function getAvailableProducts()
     {
         return Products::find()->where('count > 0')->all();
     }
