@@ -86,16 +86,32 @@ class Orders extends \yii\db\ActiveRecord
 		];
 	}
 
-	public function updateProductsByPost($data)
+	public function load($data, $formname = null)
 	{
-		if (isset($data['Orders']['products'])) {
-			$this->updateProductsByIds($data['Orders']['products']);
+		$result = parent::load($data, $formname);
+
+		if (!$result) {
+			return $result;
 		}
+
+		$this->updateProductsByIds((array) $data['Orders']['products']);
+
+		return $result;
 	}
 
-	public function updateProductsByIds($idsArray)
+	// public function updateProductsByPost($data)
+	// {
+	// 	if (isset($data['Orders']['products'])) {
+	// 		$this->updateProductsByIds($data['Orders']['products']);
+	// 	}
+	// }
+
+	public function updateProductsByIds(array $idsArray)
 	{
-		$productsPost = $idsArray ? Products::findAll($idsArray) : [];
+		if (!$idsArray) {
+			return false;
+		}
+		$productsPost = Products::findAll($idsArray);
 		$productsCurrent = $this->getProducts()->all();
 
 		foreach ($productsPost as $product) {
@@ -112,6 +128,8 @@ class Orders extends \yii\db\ActiveRecord
 				OrderProducts::deleteAll("product_id = $product->product_id AND order_id = $this->order_id");
 			}
 		}
+
+		return true;
 	}
 
 	/**
